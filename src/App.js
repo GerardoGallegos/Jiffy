@@ -8,6 +8,7 @@ class App extends React.Component {
     showModal: false,
     currentStep: 0,
     playing: false,
+    phrase: {},
 
     steps: [
       { type: 'audio', audioKey: 'to', speed: 1, nextDelay: 0 },
@@ -35,12 +36,13 @@ class App extends React.Component {
 
     this.setState({
       playing: true,
-      currentStep: 0
-    }, () => this.iterate(phrase))
+      currentStep: 0,
+      phrase
+    }, () => this.iterate())
   }
 
-  iterate = (phrase) => {
-    const { steps, currentStep } = this.state
+  iterate = () => {
+    const { steps, currentStep, phrase } = this.state
     const current = steps[currentStep]
     const nextDelay = current.nextDelay || 0
   
@@ -49,12 +51,13 @@ class App extends React.Component {
       const current = steps[currentStep]
 
       if (current.type === 'audio') {
-        this.playAudio(phrase, current)
+        this.playAudio(current)
       }
     }, nextDelay)
   }
 
-  playAudio = (phrase, currentStep) => {
+  playAudio = (currentStep) => {
+    const { phrase } = this.state
     const { speed, audioKey } = currentStep
     const text = phrase[audioKey]
     const lang = DATA.lang[audioKey]
@@ -72,15 +75,25 @@ class App extends React.Component {
       if (currentStep < steps.length - 1) {
         this.setState(state => ({
           currentStep: state.currentStep + 1
-        }), () => this.iterate(phrase))
+        }), () => this.iterate())
+      } else {
+        this.setState({
+          playing: false,
+          currentStep: 0,
+          phrase: {}
+        })
       }
     }
   }
 
   render () {
+    const { phrase, currentStep, steps } = this.state
     return (
       <div>
         <h1>Jiffi</h1>
+        <h2>
+          { phrase.to } { currentStep } / { steps.length - 1 }  
+        </h2>
         <ul>
           {DATA.list.map(phrase => (
             <li
